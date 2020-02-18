@@ -14,7 +14,7 @@ public let SKPHOTO_LOADING_DID_END_NOTIFICATION = "photoLoadingDidEndNotificatio
 open class SKPhotoBrowser: UIViewController {
     // open function
     open var currentPageIndex: Int = 0
-    open var previousPageIndex: Int = 0
+    open var cachedIndexes: Set<Int> = []
     open var initPageIndex: Int = 0
     open var activityItemProvider: UIActivityItemProvider?
     open var photos: [SKPhotoProtocol] = []
@@ -86,7 +86,7 @@ open class SKPhotoBrowser: UIViewController {
         self.photos.forEach { $0.checkCache() }
         self.currentPageIndex = min(initialPageIndex, photos.count - 1)
         self.initPageIndex = self.currentPageIndex
-        self.previousPageIndex = self.currentPageIndex
+        self.cachedIndexes.insert(self.currentPageIndex)
         animator.senderOriginImage = photos[currentPageIndex].underlyingImage
         animator.senderViewForAnimation = photos[currentPageIndex] as? UIView
     }
@@ -617,6 +617,7 @@ extension SKPhotoBrowser: UIScrollViewDelegate {
         
         if currentPageIndex != previousCurrentPage {
             delegate?.didShowPhotoAtIndex?(self, index: currentPageIndex)
+            cachedIndexes.insert(self.currentPageIndex)
             paginationView.update(currentPageIndex)
         }
     }
@@ -624,10 +625,9 @@ extension SKPhotoBrowser: UIScrollViewDelegate {
     open func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         hideControlsAfterDelay()
         
-        
         let currentIndex = pagingScrollView.contentOffset.x / pagingScrollView.frame.size.width
-        photos[previousPageIndex].clearCachedImage()
-        previousPageIndex = currentPageIndex
+        cachedIndexes.remove(currentPageIndex)
+        cachedIndexes.forEach { photos[$0].clearCachedImage() }
         
         delegate?.didScrollToIndex?(self, index: Int(currentIndex))
     }
