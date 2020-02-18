@@ -14,7 +14,7 @@ public let SKPHOTO_LOADING_DID_END_NOTIFICATION = "photoLoadingDidEndNotificatio
 open class SKPhotoBrowser: UIViewController {
     // open function
     open var currentPageIndex: Int = 0
-    open var cachedIndexes: Set<Int> = []
+    open var cachedIndexes: [Int] = []
     open var initPageIndex: Int = 0
     open var activityItemProvider: UIActivityItemProvider?
     open var photos: [SKPhotoProtocol] = []
@@ -86,7 +86,7 @@ open class SKPhotoBrowser: UIViewController {
         self.photos.forEach { $0.checkCache() }
         self.currentPageIndex = min(initialPageIndex, photos.count - 1)
         self.initPageIndex = self.currentPageIndex
-        self.cachedIndexes.insert(self.currentPageIndex)
+        self.cachedIndexes.append(self.currentPageIndex)
         animator.senderOriginImage = photos[currentPageIndex].underlyingImage
         animator.senderViewForAnimation = photos[currentPageIndex] as? UIView
     }
@@ -616,9 +616,9 @@ extension SKPhotoBrowser: UIScrollViewDelegate {
         currentPageIndex = min(max(Int(floor(visibleBounds.midX / visibleBounds.width)), 0), photos.count - 1)
         
         if currentPageIndex != previousCurrentPage {
-            delegate?.didShowPhotoAtIndex?(self, index: currentPageIndex)
-            cachedIndexes.insert(self.currentPageIndex)
             paginationView.update(currentPageIndex)
+            delegate?.didShowPhotoAtIndex?(self, index: currentPageIndex)
+            cachedIndexes.append(currentPageIndex)
         }
     }
     
@@ -626,8 +626,8 @@ extension SKPhotoBrowser: UIScrollViewDelegate {
         hideControlsAfterDelay()
         
         let currentIndex = pagingScrollView.contentOffset.x / pagingScrollView.frame.size.width
-        cachedIndexes.remove(currentPageIndex)
-        cachedIndexes.forEach { photos[$0].clearCachedImage() }
+        let indexesToClear = cachedIndexes.filter { $0 != currentPageIndex }
+        indexesToClear.forEach { photos[$0].clearCachedImage() }
         
         delegate?.didScrollToIndex?(self, index: Int(currentIndex))
     }
