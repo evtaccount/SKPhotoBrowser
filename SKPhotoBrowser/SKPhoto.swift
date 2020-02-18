@@ -15,6 +15,7 @@ import UIKit
     var contentMode: UIView.ContentMode { get set }
     func loadUnderlyingImageAndNotify()
     func checkCache()
+    func clearCachedImage()
 }
 
 // MARK: - SKPhoto
@@ -65,6 +66,8 @@ open class SKPhoto: NSObject, SKPhotoProtocol {
             }
         }
     }
+    
+    open func clearCachedImage() {}
     
     open func loadUnderlyingImageAndNotify() {
         guard photoURL != nil, let URL = URL(string: photoURL) else { return }

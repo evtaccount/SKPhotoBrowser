@@ -14,6 +14,7 @@ public let SKPHOTO_LOADING_DID_END_NOTIFICATION = "photoLoadingDidEndNotificatio
 open class SKPhotoBrowser: UIViewController {
     // open function
     open var currentPageIndex: Int = 0
+    open var previousPageIndex: Int = 0
     open var initPageIndex: Int = 0
     open var activityItemProvider: UIActivityItemProvider?
     open var photos: [SKPhotoProtocol] = []
@@ -85,6 +86,7 @@ open class SKPhotoBrowser: UIViewController {
         self.photos.forEach { $0.checkCache() }
         self.currentPageIndex = min(initialPageIndex, photos.count - 1)
         self.initPageIndex = self.currentPageIndex
+        self.previousPageIndex = self.currentPageIndex
         animator.senderOriginImage = photos[currentPageIndex].underlyingImage
         animator.senderViewForAnimation = photos[currentPageIndex] as? UIView
     }
@@ -601,7 +603,7 @@ private extension SKPhotoBrowser {
 // MARK: - UIScrollView Delegate
 
 extension SKPhotoBrowser: UIScrollViewDelegate {
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    open func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard isViewActive else { return }
         guard !isPerformingLayout else { return }
         
@@ -619,14 +621,18 @@ extension SKPhotoBrowser: UIScrollViewDelegate {
         }
     }
     
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    open func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         hideControlsAfterDelay()
         
+        
         let currentIndex = pagingScrollView.contentOffset.x / pagingScrollView.frame.size.width
+        photos[previousPageIndex].clearCachedImage()
+        previousPageIndex = currentPageIndex
+        
         delegate?.didScrollToIndex?(self, index: Int(currentIndex))
     }
     
-    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+    open func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         isEndAnimationByToolBar = true
     }
 }

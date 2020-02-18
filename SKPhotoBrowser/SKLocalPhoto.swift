@@ -35,6 +35,10 @@ open class SKLocalPhoto: NSObject, SKPhotoProtocol {
     
     open func checkCache() {}
     
+    open func clearCachedImage() {
+        underlyingImage = nil
+    }
+    
     open func loadUnderlyingImageAndNotify() {
         
         if underlyingImage != nil && photoURL == nil {
